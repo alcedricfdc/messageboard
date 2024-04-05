@@ -48,7 +48,8 @@ class UsersController extends AppController
 		}
 	}
 
-	public function logout() {
+	public function logout()
+	{
 		$this->Auth->logout();
 		$this->redirect('/users/login');
 	}
@@ -97,18 +98,55 @@ class UsersController extends AppController
 		}
 	}
 
-	public function thankYou() {
+	public function searchRecipient()
+	{
 
+		if ($this->RequestHandler->isAjax()) {
+			$this->layout = 'ajax';
+			$this->autoRender = false;
+
+			$searchQuery = $this->request->query['q'];
+			// Perform database query to fetch matching recipients
+			$users = $this->User->find('all', array(
+				'conditions' => array(
+					'User.name LIKE' => '%' . $searchQuery . '%'
+				)
+			));
+
+			// Format the results for Select2
+			$results = array();
+			foreach ($users as $user) {
+				$results[] = array(
+					'id' => $user['User']['id'],
+					'text' => $user['User']['name']
+				);
+			}
+
+			// debug(json_encode($results));
+
+			// $this->set('dataresponse', $results);
+
+
+			$this->response->type('json');
+			echo json_encode($results);
+		}
 	}
 
-	public function uploadProfileImage() {
-        // Check if the form is submitted and file is uploaded
-        if ($this->request->is('post') && !empty($this->data['User']['image']['tmp_name'])) {
-            // Define upload directory
-            $uploadDir = WWW_ROOT . 'img' . DS . 'user_profile_uploads' . DS;
+	
 
-            // Get the uploaded file
-            $file = $this->data['User']['image'];
+	public function thankYou()
+	{
+	}
+
+	public function uploadProfileImage()
+	{
+		// Check if the form is submitted and file is uploaded
+		if ($this->request->is('post') && !empty($this->data['User']['image']['tmp_name'])) {
+			// Define upload directory
+			$uploadDir = WWW_ROOT . 'img' . DS . 'user_profile_uploads' . DS;
+
+			// Get the uploaded file
+			$file = $this->data['User']['image'];
 
 			// Extract original file extension
 			$extension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
@@ -121,33 +159,33 @@ class UsersController extends AppController
 				return; // Stop further execution
 			}
 
-			$randomString = bin2hex(random_bytes(10)); 
+			$randomString = bin2hex(random_bytes(10));
 
 			// Extract original file extension
 			$extension = pathinfo($file['name'], PATHINFO_EXTENSION);
 
-			$filename = $randomString .'.'.$extension;
+			$filename = $randomString . '.' . $extension;
 
-            // Move the file to the upload directory
-            if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
-                // File uploaded successfully
-                // You may want to update the user's profile image path in the database
+			// Move the file to the upload directory
+			if (move_uploaded_file($file['tmp_name'], $uploadDir . $filename)) {
+				// File uploaded successfully
+				// You may want to update the user's profile image path in the database
 				$this->User->id = $this->Auth->user('id'); // Assuming the id field is 'id', adjust as needed
 				$this->User->save(array('profile_picture' => $filename));
 
-                $this->Flash->success(__('Profile image uploaded successfully.'), 'flash_success');
-            } else {
-                // Failed to upload the file
-                $this->Flash->error(__('Failed to upload profile image. Please try again.'), 'flash_error');
-            }
-        } else {
-            // No file uploaded
-            $this->Flash->error(__('Please select an image file to upload.'), 'flash_error');
-        }
+				$this->Flash->success(__('Profile image uploaded successfully.'), 'flash_success');
+			} else {
+				// Failed to upload the file
+				$this->Flash->error(__('Failed to upload profile image. Please try again.'), 'flash_error');
+			}
+		} else {
+			// No file uploaded
+			$this->Flash->error(__('Please select an image file to upload.'), 'flash_error');
+		}
 
-        // Redirect back to the page
-        $this->redirect($this->referer());
-    }
+		// Redirect back to the page
+		$this->redirect($this->referer());
+	}
 
 	public function add()
 	{
@@ -212,7 +250,8 @@ class UsersController extends AppController
 		}
 	}
 
-	public function changePassword($id = null) {
+	public function changePassword($id = null)
+	{
 		if (!$this->User->exists($id)) {
 			throw new NotFoundException(__('Invalid user'));
 		}

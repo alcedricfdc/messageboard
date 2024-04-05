@@ -128,4 +128,33 @@ class User extends AppModel {
 			),
 		),
 	);
+
+	public $hasMany = array(
+		'Conversation' => array(
+			'className' => 'Conversation',
+			'foreignKey' => 'created_by',
+			'dependent' => false,
+			'conditions' => '',
+			'fields' => '',
+			'order' => '',
+			'limit' => '',
+			'offset' => '',
+			'exclusive' => '',
+			'finderQuery' => '',
+			'counterQuery' => ''
+		),
+		'Participant' => array(
+			'className' => 'Participant',
+			'foreignKey' => 'user_id',
+			'dependent' => false,
+			'conditions' => '',
+			'fields' => '',
+			'order' => '',
+			'limit' => '',
+			'offset' => '',
+			'exclusive' => '',
+			'finderQuery' => '',
+			'counterQuery' => ''
+		)
+	);
 }

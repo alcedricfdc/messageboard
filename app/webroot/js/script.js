@@ -57,4 +57,42 @@ $(document).ready(function() {
             // $('#file-name').text(input.files[0].name); // Update file name display
         }
     });
+
+
+    $('#nameSelect').select2({
+        placeholder: 'Type a name...',
+        ajax: {
+            url: '/messageboard/users/searchRecipient', // Replace 'search.php' with the URL of your server-side script to fetch matching names
+            dataType: 'json',
+            delay: 250, // Delay in milliseconds before sending the AJAX request
+            processResults: function(data) {
+                return {
+                    results: data // Expected format: [{id: 1, text: 'Name 1'}, {id: 2, text: 'Name 2'}, ...]
+                };
+            },
+            cache: true // Enable caching to improve performance
+        }
+    });
+
+
+    function loadMessages() {
+        let url = window.location.href;
+        let parts = url.split('/');
+        let conversation_id = parts[parts.length - 1];
+
+        $.post(
+            '/messageboard/conversations/getMessages',
+            { conversation_id: conversation_id},
+            handleNameValidation
+        );
+
+        // the parameters here are received as a response from the url
+        function handleNameValidation(response) {
+            let jsonData = JSON.parse(response)
+            console.log(jsonData);
+        }
+    }
+
+    loadMessages();
+
 })

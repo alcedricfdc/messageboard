@@ -29,7 +29,11 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 	<?php
 	echo $this->Html->meta('icon');
 
-	echo $this->Html->script('https://code.jquery.com/jquery-1.6.2.min.js', array('inline' => false));
+	// echo $this->Html->script('https://code.jquery.com/jquery-1.6.2.min.js', array('inline' => false));
+
+	echo $this->Html->css('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css');
+	echo $this->Html->script('https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js', array('inline' => false));
+	echo $this->Html->script('https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js', array('inline' => false));
 
 	echo $this->Html->css('cake.generic');
 
@@ -65,7 +69,7 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 				&nbsp;
 				<?php echo $this->Html->link('Users', array('controller' => 'users', 'action' => 'index')); ?>
 				&nbsp;
-				<?php echo $this->Html->link('Conversations', 'https://cakephp.org'); ?>
+				<?php echo $this->Html->link('Conversations', array('controller' => 'conversations', 'action' => 'index')); ?>
 			</div>
 		</div>
 		<div id="content">

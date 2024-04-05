@@ -1,5 +1,8 @@
 <div class="users view">
 	<h2><?php echo __('User'); ?></h2>
+	<pre>
+		<?php print_r($user); ?>
+	</pre>
 	<div id="profile-image-container" class="flex-row">
 		<label for="profile-image-file-input" class="change-profile-button">Change</label>
 		<?php 
