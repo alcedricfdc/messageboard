@@ -75,24 +75,6 @@ $(document).ready(function() {
     });
 
 
-    function loadMessages() {
-        let url = window.location.href;
-        let parts = url.split('/');
-        let conversation_id = parts[parts.length - 1];
-
-        $.post(
-            '/messageboard/conversations/getMessages',
-            { conversation_id: conversation_id},
-            handleNameValidation
-        );
-
-        // the parameters here are received as a response from the url
-        function handleNameValidation(response) {
-            let jsonData = JSON.parse(response)
-            console.log(jsonData);
-        }
-    }
-
-    loadMessages();
+    
 
 })

@@ -815,6 +815,9 @@ pre {
 	border: 1px solid black;
 	display: flex;
 	flex-direction: column;
+	gap: 5px;
+	height: calc(100vh / 2);
+	overflow-y: scroll;
 }
 
 .conversation-box .message-box-received {
@@ -827,4 +830,38 @@ pre {
 	padding: 10px;
 	background-color: #62c1f5;
 	align-self:flex-end;
+	display: flex;
+	flex-direction: column;
+	align-items: end;
+}
+
+.width-50-percent {
+	width: 50%;
+}
+
+.flex-column {
+	display: flex;
+	flex-direction: column;
+}
+
+.align-end {
+	align-items: flex-end;
+}
+
+#sendMessage {
+	padding: 10px 25px;
+	border: none;
+	background-color: rgb(152, 200, 234);
+	font-size: 16px;
+	cursor: pointer;
+	transition: all 200ms ease;
+}
+
+#sendMessage:hover {
+	background-color: rgb(217, 236, 243);
+}
+
+.message-time-sent {
+	font-size: 10px;
+	color: rgb(111, 110, 110);
 }

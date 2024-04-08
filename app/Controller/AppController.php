@@ -54,11 +54,4 @@ class AppController extends Controller
             )
         )
     );
-
-
-
-    public function beforeFilter()
-    {
-        $this->Auth->allow('add', 'view', 'index');
-    }
 }

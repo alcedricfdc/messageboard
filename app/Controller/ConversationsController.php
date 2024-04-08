@@ -9,25 +9,13 @@ App::uses('AppController', 'Controller');
 class ConversationsController extends AppController
 {
 
-	/**
-	 * Components
-	 *
-	 * @var array
-	 */
 	public $components = array('Paginator', 'Flash');
 
 	public function beforeFilter()
 	{
-		parent::beforeFilter();
-		$this->Auth->allow();
 		$this->RequestHandler = $this->Components->load('RequestHandler');
 	}
 
-	/**
-	 * index method
-	 *
-	 * @return void
-	 */
 	public function index()
 	{
 		// $this->Conversation->recursive = 0;
@@ -50,24 +38,23 @@ class ConversationsController extends AppController
 		$this->set('conversations', $conversations);
 	}
 
-	/**
-	 * view method
-	 *
-	 * @throws NotFoundException
-	 * @param string $id
-	 * @return void
-	 */
 	public function view($id = null)
 	{
 		if (!$this->Conversation->exists($id)) {
 			throw new NotFoundException(__('Invalid conversation'));
 		}
+
+
 		$options = array('conditions' => array('Conversation.' . $this->Conversation->primaryKey => $id));
 		$conversation = $this->Conversation->find('first', $options);
 
 		$userId = $this->Auth->user('id');
 
+		$participantsIds = [];
+
 		foreach ($conversation['Participant'] as &$participant) {
+			$participantsIds[] = $participant['user_id'];
+
 			$user = $this->Conversation->Participant->User->findById($participant['user_id']);
 			$participant['name'] = $user['User']['name'];
 			$participant['profile_picture'] = $user['User']['profile_picture'];
@@ -78,50 +65,52 @@ class ConversationsController extends AppController
 			}
 		}
 
+		if(!in_array(AuthComponent::user('id'), $participantsIds)) {
+			$this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+		}
+
 		$this->set('conversation', $conversation);
 		$this->set('user_participant_id', $user_participant_id);
 	}
 
-	public function getMessages()
+	
+
+	public function replyMessage()
 	{
 		if ($this->RequestHandler->isAjax()) {
 			$conversation_id = $this->params['data']['conversation_id'];
-
-			$options = array('conditions' => array('Conversation.' . $this->Conversation->primaryKey => $conversation_id));
-			$conversation = $this->Conversation->find('first', $options);
+			$message = $this->params['data']['message'];
 
 			$userId = $this->Auth->user('id');
 
-			$messages = array();
+			$participant = $this->Conversation->Participant->find('first', array(
+				'conditions' => array(
+					'Participant.user_id' => $userId,
+					'Participant.conversation_id' => $conversation_id
+				),
+				'fields' => array('Participant.id')
+			));
 
-			foreach ($conversation['Participant'] as &$participant) {
-				$user = $this->Conversation->Participant->User->findById($participant['user_id']);
-				$participant['name'] = $user['User']['name'];
-				$participant['profile_picture'] = $user['User']['profile_picture'];
-				$participant['email'] = $user['User']['email'];
-	
-				if ($participant['user_id'] == $userId) {
-					$user_participant_id = $participant['id'];
+			if ($participant) {
+				$participant_id = $participant['Participant']['id'];
+
+				$this->Conversation->Participant->Message->create();
+				$this->request->data['Message']['participant_id'] = $participant_id;
+				$this->request->data['Message']['conversation_id'] = $conversation_id;
+				$this->request->data['Message']['message'] = $message;
+
+				if ($this->Conversation->Participant->Message->save($this->request->data)) {
+					$response = 'Message have been saved';
+				} else {
+					$this->Flash->error(__('Message could not be saved.'));
 				}
+			} else {
+				$response = 'Participant not found';
 			}
 
-			foreach ($conversation['Message'] as &$message) {
-				$user = $this->Conversation->Participant->User->findById($participant['user_id']);
-				$message['name'] = $user['User']['name'];
-				$message['profile_picture'] = $user['User']['profile_picture'];
-				$message['message'] = $user['User']['email'];
-			}
-
-			$this->set('response', $conversation);
-			$this->set('user_participant_id', $user_participant_id);
+			$this->set('response', $response);
 		}
 	}
-
-	/**
-	 * add method
-	 *
-	 * @return void
-	 */
 	public function add()
 	{
 		if ($this->request->is('post')) {
@@ -134,10 +123,8 @@ class ConversationsController extends AppController
 			$this->request->data['Conversation']['created_by'] = AuthComponent::user('id');
 
 			if ($this->Conversation->save($this->request->data)) {
-				// Get the last saved ID of the conversation
 				$conversation_id = $this->Conversation->getLastInsertId();
 
-				// Create participants associated with the conversation
 				$participantsData = array();
 
 				foreach ($users_id as $user_id) {
@@ -148,9 +135,6 @@ class ConversationsController extends AppController
 				}
 
 				if ($this->Conversation->Participant->saveMany($participantsData)) {
-					// Participants saved successfully
-					// $this->Flash->success(__('Conversation and participants have been saved.'));
-					// return $this->redirect(array('action' => 'index'));
 
 					$participant_id = $this->Conversation->Participant->field('id', array(
 						'user_id' => AuthComponent::user('id'),
@@ -169,27 +153,19 @@ class ConversationsController extends AppController
 						$this->Flash->error(__('Message could not be saved.'));
 					}
 				} else {
-					// Participants save failed
 					$this->Flash->error(__('Participants could not be saved.'));
 				}
 			} else {
-				// Conversation save failed
 				$this->Flash->error(__('The conversation could not be saved. Please, try again.'));
 			}
 		}
 	}
 
 
-
-	/**
-	 * edit method
-	 *
-	 * @throws NotFoundException
-	 * @param string $id
-	 * @return void
-	 */
 	public function edit($id = null)
 	{
+		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+
 		if (!$this->Conversation->exists($id)) {
 			throw new NotFoundException(__('Invalid conversation'));
 		}
@@ -206,15 +182,10 @@ class ConversationsController extends AppController
 		}
 	}
 
-	/**
-	 * delete method
-	 *
-	 * @throws NotFoundException
-	 * @param string $id
-	 * @return void
-	 */
 	public function delete($id = null)
 	{
+		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+		
 		if (!$this->Conversation->exists($id)) {
 			throw new NotFoundException(__('Invalid conversation'));
 		}

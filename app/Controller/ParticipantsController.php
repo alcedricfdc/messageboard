@@ -8,31 +8,18 @@ App::uses('AppController', 'Controller');
  */
 class ParticipantsController extends AppController {
 
-/**
- * Components
- *
- * @var array
- */
 	public $components = array('Paginator');
 
-/**
- * index method
- *
- * @return void
- */
 	public function index() {
+		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+
 		$this->Participant->recursive = 0;
 		$this->set('participants', $this->Paginator->paginate());
 	}
 
-/**
- * view method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
 	public function view($id = null) {
+		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+		
 		if (!$this->Participant->exists($id)) {
 			throw new NotFoundException(__('Invalid participant'));
 		}
@@ -40,12 +27,9 @@ class ParticipantsController extends AppController {
 		$this->set('participant', $this->Participant->find('first', $options));
 	}
 
-/**
- * add method
- *
- * @return void
- */
 	public function add() {
+		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+
 		if ($this->request->is('post')) {
 			$this->Participant->create();
 			if ($this->Participant->save($this->request->data)) {
@@ -60,14 +44,9 @@ class ParticipantsController extends AppController {
 		$this->set(compact('users', 'conversations'));
 	}
 
-/**
- * edit method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
 	public function edit($id = null) {
+		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+
 		if (!$this->Participant->exists($id)) {
 			throw new NotFoundException(__('Invalid participant'));
 		}
@@ -87,14 +66,10 @@ class ParticipantsController extends AppController {
 		$this->set(compact('users', 'conversations'));
 	}
 
-/**
- * delete method
- *
- * @throws NotFoundException
- * @param string $id
- * @return void
- */
+
 	public function delete($id = null) {
+		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
+
 		if (!$this->Participant->exists($id)) {
 			throw new NotFoundException(__('Invalid participant'));
 		}

@@ -29,12 +29,24 @@ class User extends AppModel {
 		'age' => array(
 			'numeric' => array(
 				'rule' => array('numeric'),
-				//'message' => 'Your custom message here',
+				'message' => 'Age should be numeric',
 				//'allowEmpty' => false,
 				//'required' => false,
 				//'last' => false, // Stop validation after this rule
 				//'on' => 'create', // Limit validation to 'create' or 'update' operations
 			),
+			'notBlank' => array(
+				'rule' => array('notBlank'),
+				'message' => 'Age should not be empty',
+				//'allowEmpty' => false,
+				//'required' => false,
+				//'last' => false, // Stop validation after this rule
+				//'on' => 'create', // Limit validation to 'create' or 'update' operations
+			),
+			'positive' => array(
+                'rule' => array('comparison', '>', 0),
+                'message' => 'Age must be more than 0.',
+            )
 		),
 		'birthdate' => array(
 			'date' => array(
@@ -55,7 +67,7 @@ class User extends AppModel {
 		'hobby' => array(
 			'notBlank' => array(
 				'rule' => array('notBlank'),
-				//'message' => 'Your custom message here',
+				'message' => 'Please add your hobby',
 				//'allowEmpty' => false,
 				//'required' => false,
 				//'last' => false, // Stop validation after this rule
@@ -90,7 +102,7 @@ class User extends AppModel {
 		'password' => array(
 			'notBlank' => array(
 				'rule' => array('notBlank'),
-				//'message' => 'Your custom message here',
+				'message' => 'Password cannot be empty',
 				//'allowEmpty' => false,
 				//'required' => false,
 				//'last' => false, // Stop validation after this rule

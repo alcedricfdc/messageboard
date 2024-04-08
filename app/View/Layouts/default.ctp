@@ -60,16 +60,16 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 						echo $this->Html->link(AuthComponent::user('name'), array('controller' => 'users', 'action' => 'view', AuthComponent::user('id')));
 						echo '<br><br>';
 						echo $this->Html->link('Logout', array('controller' => 'users', 'action' => 'logout'));
+						echo '&nbsp;&nbsp;';
+						echo $this->Html->link('Users', array('controller' => 'users', 'action' => 'index'));
+						echo '&nbsp;&nbsp;';
+						echo $this->Html->link('Conversations', array('controller' => 'conversations', 'action' => 'index'));
 					} else {
 						echo $this->Html->link('Login', array('controller' => 'users', 'action' => 'login'));
+						echo '&nbsp;&nbsp;';
+						echo $this->Html->link('Register', array('controller' => 'users', 'action' => 'add'));
 					} 
 				?>
-				&nbsp;
-				<?php echo $this->Html->link('Register', array('controller' => 'users', 'action' => 'add')); ?>
-				&nbsp;
-				<?php echo $this->Html->link('Users', array('controller' => 'users', 'action' => 'index')); ?>
-				&nbsp;
-				<?php echo $this->Html->link('Conversations', array('controller' => 'conversations', 'action' => 'index')); ?>
 			</div>
 		</div>
 		<div id="content">

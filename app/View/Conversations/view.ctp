@@ -8,108 +8,143 @@
 			</h2>
 		<?php endif ?>
 	<?php endforeach ?>
+</div>
+
+<div class="conversation-box" id="conversation-box">
+
+</div>
+<br>
+<div class="flex-column align-end">
+
+	<?php
+	echo $this->Form->input(
+		'message',
+		array(
+			'type' => 'textarea',
+			'id' => 'replayTextArea',
+			'cols' => 40,
+			'rows' => 3
+		)
+	);
+	echo $this->Form->button('Send', array('id' => 'sendMessage'));
+
+	?>
 
 </div>
 
-<div class="conversation-box">
-	
-	<div class="message-box-sent">
-		Hi this is my own message sent
-	</div>
-	<div class="message-box-received">
-		This is the reply i received
-	</div>
-</div>
-<br>
-<br>
-<br>
+<script>
+	$(document).ready(function() {
 
+		$(document).on('click', '.delete-message-button', function() {
+			let messageId = $(this).data('message-id');
+			let messageContainer = $(this).closest('.message-box-sent')
 
-<div class="related">
-	<h3><?php echo __('Related Messages'); ?></h3>
-	<?php if (!empty($conversation['Message'])) : ?>
-		<table cellpadding="0" cellspacing="0">
-			<tr>
-				<th><?php echo __('Id'); ?></th>
-				<th><?php echo __('Participant Id'); ?></th>
-				<th><?php echo __('Conversation Id'); ?></th>
-				<th><?php echo __('Message'); ?></th>
-				<th><?php echo __('Created'); ?></th>
-				<th class="actions"><?php echo __('Actions'); ?></th>
-			</tr>
-			<?php foreach ($conversation['Message'] as $message) : ?>
-				<tr>
-					<td><?php echo $message['id']; ?></td>
-					<td><?php echo $message['participant_id']; ?></td>
-					<td><?php echo $message['conversation_id']; ?></td>
-					<td><?php echo $message['message']; ?></td>
-					<td><?php echo $message['created']; ?></td>
-					<td class="actions">
-						<?php echo $this->Html->link(__('View'), array('controller' => 'messages', 'action' => 'view', $message['id'])); ?>
-						<?php echo $this->Html->link(__('Edit'), array('controller' => 'messages', 'action' => 'edit', $message['id'])); ?>
-						<?php echo $this->Form->postLink(__('Delete'), array('controller' => 'messages', 'action' => 'delete', $message['id']), array('confirm' => __('Are you sure you want to delete # %s?', $participant['id']))); ?>
-					</td>
-				</tr>
-			<?php endforeach; ?>
-		</table>
-	<?php endif; ?>
+			let confirmDelete = window.confirm("Are you sure you want to delete this message #" + messageId + "?")
 
-	<pre>
-	<!-- <?php print_r($messages) ?> -->
-</pre>
+			if (confirmDelete) {
+				clearInterval(getMessagesIntervalId);
 
-	<div class="actions">
-		<ul>
-			<li><?php echo $this->Html->link(__('New Participant'), array('controller' => 'participants', 'action' => 'add')); ?> </li>
-		</ul>
-	</div>
-</div>
+				$.ajax({
+					url: '/messageboard/messages/delete/' + messageId,
+					type: 'DELETE',
+					data: {},
+					success: function(response) {
+						console.log('Message deleted successfully:', response);
+						messageContainer.fadeOut(1000)
 
-<!-- <div class="actions">
-	<h3><?php echo __('Actions'); ?></h3>
-	<ul>
-		<li><?php echo $this->Html->link(__('Edit Conversation'), array('action' => 'edit', $conversation['Conversation']['id'])); ?> </li>
-		<li><?php echo $this->Form->postLink(__('Delete Conversation'), array('action' => 'delete', $conversation['Conversation']['id']), array('confirm' => __('Are you sure you want to delete # %s?', $conversation['Conversation']['id']))); ?> </li>
-		<li><?php echo $this->Html->link(__('List Conversations'), array('action' => 'index')); ?> </li>
-		<li><?php echo $this->Html->link(__('New Conversation'), array('action' => 'add')); ?> </li>
-		<li><?php echo $this->Html->link(__('List Participants'), array('controller' => 'participants', 'action' => 'index')); ?> </li>
-		<li><?php echo $this->Html->link(__('New Participant'), array('controller' => 'participants', 'action' => 'add')); ?> </li>
-	</ul>
-</div> -->
+						setTimeout(function() {
+							var getNewMessagesInterval = setInterval(function() {
+								getMessages(page_count);
+							}, 1000);
+						}, 1000);
+
+					},
+					error: function(xhr, status, error) {
+						console.error('Error deleting message:', error);
+					}
+				});
+			} else {
+				console.log('cancelled');
+
+			}
+		});
 
 
 
 
-<!-- <div class="related">
-	<h3><?php echo __('Related Participants'); ?></h3>
-	<?php if (!empty($conversation['Participant'])) : ?>
-		<table cellpadding="0" cellspacing="0">
-			<tr>
-				<th><?php echo __('Id'); ?></th>
-				<th><?php echo __('User Id'); ?></th>
-				<th><?php echo __('Conversation Id'); ?></th>
-				<th><?php echo __('Created'); ?></th>
-				<th class="actions"><?php echo __('Actions'); ?></th>
-			</tr>
-			<?php foreach ($conversation['Participant'] as $participant) : ?>
-				<tr>
-					<td><?php echo $participant['id']; ?></td>
-					<td><?php echo $participant['user_id']; ?></td>
-					<td><?php echo $participant['conversation_id']; ?></td>
-					<td><?php echo $participant['created']; ?></td>
-					<td class="actions">
-						<?php echo $this->Html->link(__('View'), array('controller' => 'participants', 'action' => 'view', $participant['id'])); ?>
-						<?php echo $this->Html->link(__('Edit'), array('controller' => 'participants', 'action' => 'edit', $participant['id'])); ?>
-						<?php echo $this->Form->postLink(__('Delete'), array('controller' => 'participants', 'action' => 'delete', $participant['id']), array('confirm' => __('Are you sure you want to delete # %s?', $participant['id']))); ?>
-					</td>
-				</tr>
-			<?php endforeach; ?>
-		</table>
-	<?php endif; ?>
+		var page_count = 1;
 
-	<div class="actions">
-		<ul>
-			<li><?php echo $this->Html->link(__('New Participant'), array('controller' => 'participants', 'action' => 'add')); ?> </li>
-		</ul>
-	</div>
-</div> -->
+		function getMessages(count) {
+			let url = window.location.href;
+			let parts = url.split('/');
+			let conversation_id = parts[parts.length - 1];
+
+			$.post(
+				'/messageboard/messages/getMessages', {
+					conversation_id: conversation_id,
+					page_count: count
+				},
+				function(response) {
+					let jsonData = JSON.parse(response)
+
+					let conversationBox = $("#conversation-box")
+					conversationBox.empty()
+
+					jsonData.forEach(message => {
+						let messageClassName = message['Participant']['isLoggedIn'] ? 'message-box-sent' : 'message-box-received'
+						let deleteButton = message['Participant']['isLoggedIn'] ? '<button class="delete-message-button" data-message-id="' + message['Message']['id'] + '">' + 'Delete' + '</p>' : ''
+
+						let messageContainer = '<div class="' + messageClassName + '">' +
+							'<p>' + message['Message']['message'] + '</p>' +
+							'<p class="message-time-sent">' + message['Message']['created'] + '</p>' +
+							deleteButton +
+							'</div>'
+						conversationBox.append(messageContainer)
+					})
+
+					let showMoreButton = '<button class="show-more-button" id="show-more-messages-button">Show more...</button>'
+
+					conversationBox.append(showMoreButton)
+
+					page_count = count;
+
+				}
+			);
+		}
+
+		$(document).on("click", "#show-more-messages-button", function() {
+			getMessages(page_count + 1);
+		});
+
+		getMessages(page_count);
+
+		var getMessagesIntervalId = setInterval(function() {
+			getMessages(page_count);
+		}, 1000)
+
+		$("button[id='sendMessage']").click(function() {
+			let message = $("#replayTextArea").val()
+
+			let url = window.location.href;
+			let parts = url.split('/');
+			let conversation_id = parts[parts.length - 1];
+
+			$.post(
+				'/messageboard/conversations/replyMessage', {
+					conversation_id: conversation_id,
+					message: message
+				},
+				replyMessageCallback
+			);
+
+			function replyMessageCallback(response) {
+				console.log(response);
+				$("#replayTextArea").val('')
+				getMessages(page_count);
+			}
+
+		})
+
+
+	})
+</script>
