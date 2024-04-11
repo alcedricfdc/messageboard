@@ -55,20 +55,24 @@ $cakeVersion = __d('cake_dev', 'CakePHP %s', Configure::version())
 		<div id="header">
 			<div>
 				<p>MessageBoard</p>
-				<?php 
-					if(AuthComponent::user()){
-						echo $this->Html->link(AuthComponent::user('name'), array('controller' => 'users', 'action' => 'view', AuthComponent::user('id')));
-						echo '<br><br>';
-						echo $this->Html->link('Logout', array('controller' => 'users', 'action' => 'logout'));
-						echo '&nbsp;&nbsp;';
-						echo $this->Html->link('Users', array('controller' => 'users', 'action' => 'index'));
-						echo '&nbsp;&nbsp;';
-						echo $this->Html->link('Conversations', array('controller' => 'conversations', 'action' => 'index'));
-					} else {
+				<?php
+				if (AuthComponent::user()) {
+					echo $this->Html->link(AuthComponent::user('name'), array('controller' => 'users', 'action' => 'view', AuthComponent::user('id')));
+					echo '<br><br>';
+					echo $this->Html->link('Logout', array('controller' => 'users', 'action' => 'logout'));
+					echo '&nbsp;&nbsp;';
+					echo $this->Html->link('Users', array('controller' => 'users', 'action' => 'index'));
+					echo '&nbsp;&nbsp;';
+					echo $this->Html->link('Conversations', array('controller' => 'conversations', 'action' => 'index'));
+				} else {
+					if ($this->request->params['action'] !== 'login') {
 						echo $this->Html->link('Login', array('controller' => 'users', 'action' => 'login'));
-						echo '&nbsp;&nbsp;';
+					}
+					if ($this->request->params['action'] !== 'add') {
 						echo $this->Html->link('Register', array('controller' => 'users', 'action' => 'add'));
-					} 
+
+					}
+				}
 				?>
 			</div>
 		</div>

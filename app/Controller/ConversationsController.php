@@ -22,20 +22,34 @@ class ConversationsController extends AppController
 		// $this->set('conversations', $this->Paginator->paginate());
 
 		$userId = $this->Auth->user('id');
-		$conversations = $this->Conversation->getConversationsForUser($userId);
 
-		// Fetch user data for each participant
-		foreach ($conversations as &$conversation) {
-			foreach ($conversation['Participant'] as &$participant) {
-				if ($participant['user_id'] !== $userId) {
+		if ($this->RequestHandler->isAjax()) {
+			$page_count = $this->params['data']['page_count'];
+			$items_count = $page_count * 2;
+
+			$conversations = $this->Conversation->getConversationsForUser($userId, $items_count);
+
+			// Fetch user data for each participant
+			foreach ($conversations as &$conversation) {
+				foreach ($conversation['Participant'] as &$participant) {
 					$user = $this->Conversation->Participant->User->findById($participant['user_id']);
 					$participant['name'] = $user['User']['name'];
 					$participant['profile_picture'] = $user['User']['profile_picture'];
 					$participant['email'] = $user['User']['email'];
+
+					if ($participant['user_id'] == $userId) {
+						$participant['isSelf'] = true;
+					} else {
+						$participant['isSelf'] = false;
+					}
 				}
 			}
+
+			$this->autoRender = false;
+			$this->response->type('json');
+			echo json_encode($conversations);
+			// $this->set('conversations', $conversations);
 		}
-		$this->set('conversations', $conversations);
 	}
 
 	public function view($id = null)
@@ -65,7 +79,7 @@ class ConversationsController extends AppController
 			}
 		}
 
-		if(!in_array(AuthComponent::user('id'), $participantsIds)) {
+		if (!in_array(AuthComponent::user('id'), $participantsIds)) {
 			$this->redirect(array('controller' => 'conversations', 'action' => 'index'));
 		}
 
@@ -73,7 +87,7 @@ class ConversationsController extends AppController
 		$this->set('user_participant_id', $user_participant_id);
 	}
 
-	
+
 
 	public function replyMessage()
 	{
@@ -115,7 +129,52 @@ class ConversationsController extends AppController
 	{
 		if ($this->request->is('post')) {
 			$recipient_id = $this->request->data['Conversation']['recipient_id'];
+
+			// check first if there's a conversation that exist already where the participants users_id are $recipient_id and the AuthComponent::user('id')
+
+			$existingConversation = $this->Conversation->find('first', array(
+				'joins' => array(
+					array(
+						'table' => 'participants',
+						'alias' => 'Participant',
+						'type' => 'INNER',
+						'conditions' => array(
+							'Participant.conversation_id = Conversation.id'
+						)
+					)
+				),
+				'conditions' => array(
+					'OR' => array(
+						array(
+							'Participant.user_id' => AuthComponent::user('id'),
+							'Participant.conversation_id' => $this->Conversation->Participant->find('list', array(
+								'fields' => array('Participant.conversation_id'),
+								'conditions' => array('Participant.user_id' => $recipient_id)
+							))
+						),
+						array(
+							'Participant.user_id' => $recipient_id,
+							'Participant.conversation_id' => $this->Conversation->Participant->find('list', array(
+								'fields' => array('Participant.conversation_id'),
+								'conditions' => array('Participant.user_id' => AuthComponent::user('id'))
+							))
+						)
+					)
+				),
+				'contain' => array('Participant')
+			));
+
+			if ($existingConversation) {
+				$this->Flash->error(__('Convo exist already. Please open your conversation and send your message there'));
+				return $this->redirect(array('action' => 'index'));
+			}
+
 			$message = $this->request->data['Conversation']['message'];
+
+			if (AuthComponent::user('id') == $recipient_id) {
+				$this->Flash->error(__('You cannot message yourself.'));
+				return $this->redirect(array('action' => 'index'));
+			}
 
 			$users_id = array(AuthComponent::user('id'), $recipient_id);
 
@@ -184,17 +243,35 @@ class ConversationsController extends AppController
 
 	public function delete($id = null)
 	{
-		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
-		
+
 		if (!$this->Conversation->exists($id)) {
 			throw new NotFoundException(__('Invalid conversation'));
+			$response['success'] = false;
+			$response['message'] = 'Invalid message';
 		}
+
 		$this->request->allowMethod('post', 'delete');
+
 		if ($this->Conversation->delete($id)) {
-			$this->Flash->success(__('The conversation has been deleted.'));
+			if ($this->Conversation->Participant->deleteAll(array('Participant.conversation_id' => $id))) {
+				if ($this->Conversation->Message->deleteAll(array('Message.conversation_id' => $id))) {
+					$response['success'] = true;
+					$response['message'] = 'The conversations and message has been deleted.';
+				} else {
+					$response['success'] = false;
+					$response['message'] = 'The conversation messages could not be deleted. Please, try again.';
+				}
+			} else {
+				$response['success'] = false;
+				$response['message'] = 'The participants could not be deleted. Please, try again.';
+			}
 		} else {
-			$this->Flash->error(__('The conversation could not be deleted. Please, try again.'));
+			$response['success'] = false;
+			$response['message'] = 'The message could not be deleted. Please, try again.';
 		}
-		return $this->redirect(array('action' => 'index'));
+
+		$this->autoRender = false;
+		$this->response->type('json');
+		echo json_encode($response);
 	}
 }

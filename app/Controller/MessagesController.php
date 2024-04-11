@@ -19,7 +19,7 @@ class MessagesController extends AppController
 	public function index()
 	{
 		return $this->redirect(array('controller' => 'conversations', 'action' => 'index'));
-		
+
 		$this->Message->recursive = 0;
 		$this->set('messages', $this->Paginator->paginate());
 	}
@@ -59,9 +59,9 @@ class MessagesController extends AppController
 				$message_user_id = $message['Participant']['user_id'];
 
 				if ($message_user_id == $userId) {
-					$message['Participant']['isLoggedIn'] = true;
+					$message['Participant']['isSelf'] = true;
 				} else {
-					$message['Participant']['isLoggedIn'] = false;
+					$message['Participant']['isSelf'] = false;
 				}
 
 
@@ -115,6 +115,45 @@ class MessagesController extends AppController
 		$participants = $this->Message->Participant->find('list');
 		$this->set(compact('participants'));
 	}
+
+
+	public function searchMessage()
+	{
+		if ($this->RequestHandler->isAjax()) {
+			$conversation_id = $this->params['data']['conversation_id'];
+			$searchInput = $this->params['data']['searchInput'];
+
+			$userId = $this->Auth->user('id');
+
+			$messages = $this->Message->find('all', array(
+				'conditions' => array(
+					'Message.message LIKE' => '%' . $searchInput . '%',
+					'Message.conversation_id' => $conversation_id,
+				)
+			));
+
+			foreach ($messages as &$message) {
+				$sender_user_id = $message['Participant']['user_id'];
+
+				$user = $this->Message->Participant->User->findById($sender_user_id);
+
+				if ($user) {
+					if($user['User']['id'] == $userId) {
+						$message['Message']['sender'] = 'You';
+					} else {
+						$message['Message']['sender'] = $user['User']['name'];
+					}
+				} else {
+					$message['Message']['sender'] = 'Unknown';
+				}
+			}
+
+			$this->autoRender = false;
+			$this->response->type('json');
+			echo json_encode($messages);
+		}
+	}
+
 
 	public function delete($id = null)
 	{

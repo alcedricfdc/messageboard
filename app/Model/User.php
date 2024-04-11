@@ -29,7 +29,7 @@ class User extends AppModel {
 		'age' => array(
 			'numeric' => array(
 				'rule' => array('numeric'),
-				'message' => 'Age should be numeric',
+				'message' => 'Add a valid number',
 				//'allowEmpty' => false,
 				//'required' => false,
 				//'last' => false, // Stop validation after this rule
