@@ -113,7 +113,11 @@
 
 					jsonData.forEach(message => {
 						let messageClassName = message['Participant']['isSelf'] ? 'message-box-sent' : 'message-box-received'
-						let deleteButton = message['Participant']['isSelf'] ? '<button class="delete-message-button" data-message-id="' + message['Message']['id'] + '">' + 'Delete' + '</p>' : ''
+						let deleteButton = message['Participant']['isSelf'] ? '<button class="delete-message-button" data-message-id="' + message['Message']['id'] + '">' + 'Delete' + '</button>' : ''
+						let profilePic = message['Participant']['profile_picture'] == "" ? '<a href="/messageboard/users/view/'+ message['Participant']['user_id'] +'"> <img class="small-profile-pic" src="/messageboard/app/webroot/img/default-profile.jpeg" alt=""></a>' : 
+																							'<a href="/messageboard/users/view/'+ message['Participant']['user_id'] +'"> <img class="small-profile-pic" src="/messageboard/app/webroot/img/user_profile_uploads/'+message['Participant']['profile_picture']+'" alt=""></a>'
+						
+																							console.log(message);
 
 						let originalText = message['Message']['message']
 						let messageText = message['Message']['message']
@@ -133,6 +137,7 @@
 							readMoreButton +
 							'<p class="message-time-sent">' + message['Message']['created'] + '</p>' +
 							deleteButton +
+							profilePic + 
 							'</div>'
 						conversationBox.append(messageContainer)
 					})
@@ -166,9 +171,9 @@
 
 		getMessages(page_count);
 
-		var getMessagesIntervalId = setInterval(function() {
-			getMessages(page_count);
-		}, 1000)
+		// var getMessagesIntervalId = setInterval(function() {
+		// 	getMessages(page_count);
+		// }, 1000)
 
 		$("button[id='sendMessage']").click(function() {
 			let message = $("#replayTextArea").val()
